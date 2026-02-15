@@ -29,12 +29,9 @@ export default function TemplateUploader({
         <Upload size={24} className="text-blue-400" />
         <h2 className="text-2xl font-bold text-white">Загрузка PDF-шаблонов</h2>
       </div>
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {courses.map((course) => (
           <div key={course.id} className="border border-gray-700 rounded-lg p-4 hover:border-blue-500 transition-colors">
-            <h3 className="text-lg font-semibold text-white mb-3">{course.name}</h3>
-
             <div className="relative">
               <input
                 type="file"
@@ -48,7 +45,6 @@ export default function TemplateUploader({
                 className="hidden"
                 id={`pdf-input-${course.id}`}
               />
-
               <label
                 htmlFor={`pdf-input-${course.id}`}
                 className={`flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg cursor-pointer transition-all ${
@@ -73,7 +69,6 @@ export default function TemplateUploader({
                 )}
               </label>
             </div>
-
             {loadedTemplates[course.id] && (
               <button
                 onClick={() => onTemplateLoad(course.id, new Uint8Array(), '')}
@@ -86,7 +81,6 @@ export default function TemplateUploader({
           </div>
         ))}
       </div>
-
       <div className="mt-6 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
         <p className="text-blue-300 text-sm">
           Загруженные PDF-шаблоны будут использоваться как основа для сертификатов. ФИО и оценки будут добавлены автоматически.
