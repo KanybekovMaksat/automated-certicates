@@ -279,8 +279,8 @@ export async function generateCertificatePDF(
   });
 
   page.drawText(date, {
-    x: 724,
-    y: height - 56,
+    x: 705,
+    y: height - 50,
     size: 11,
     font,
     color: textBlue,
