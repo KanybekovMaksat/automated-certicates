@@ -193,7 +193,12 @@ export async function generateCertificatePDF(
   const green = rgb(0x89 / 255, 0xc7 / 255, 0x23 / 255);
   const gray = rgb(0.85, 0.85, 0.85);
 
-  const skillScores = [student.skill1, student.skill2, student.skill3];
+  const skills = course.skills ?? [];
+  // Берем только те значения навыков студента, которые соответствуют курсу
+  const skillScores = [student.skill1, student.skill2, student.skill3].slice(
+    0,
+    skills.length,
+  );
 
   const startX = 310; // левая граница блока навыков
   const startY = height - 370;
@@ -207,11 +212,47 @@ export async function generateCertificatePDF(
 
   const skillFontSize = 18;
 
+  // skillScores.forEach((score, index) => {
+  //   const y = startY - index * rowGap;
+
+  //   const skillName = course.skills?.[index] ?? '';
+
+  //   // Текст навыка
+  //   page.drawText(skillName, {
+  //     x: startX,
+  //     y,
+  //     size: skillFontSize,
+  //     font,
+  //     color: textBlue,
+  //   });
+
+  //   // Ширина текста с правильным fontSize
+  //   const textWidth = font.widthOfTextAtSize(skillName, skillFontSize);
+
+  //   // немного сдвигаем вправо
+  //   const boxesStartX = startX + textWidth + textToBoxesGap + 10;
+
+  //   // Центрирование по вертикали относительно текста
+  //   const textHeight = font.heightAtSize(skillFontSize);
+  //   // const boxY = y + textHeight / 2 - boxSizeHeight / 2 - 2;
+  //   const boxY = y - boxSizeHeight / 2 + 4; // чуть выше центра для лучшего визуала
+
+  //   for (let i = 0; i < 10; i++) {
+  //     page.drawRectangle({
+  //       x: boxesStartX + i * (boxSize + boxGap),
+  //       y: boxY,
+  //       width: boxSize,
+  //       height: boxSizeHeight,
+  //       color: i < score ? green : gray,
+  //     });
+  //   }
+  // });
+
   skillScores.forEach((score, index) => {
     const y = startY - index * rowGap;
+    const skillName = skills[index];
 
-const skillName = course.skills?.[index] ?? '';
-
+    if (!skillName) return; 
     // Текст навыка
     page.drawText(skillName, {
       x: startX,
@@ -221,16 +262,10 @@ const skillName = course.skills?.[index] ?? '';
       color: textBlue,
     });
 
-    // Ширина текста с правильным fontSize
     const textWidth = font.widthOfTextAtSize(skillName, skillFontSize);
-
-    // немного сдвигаем вправо
     const boxesStartX = startX + textWidth + textToBoxesGap + 10;
 
-    // Центрирование по вертикали относительно текста
-    const textHeight = font.heightAtSize(skillFontSize);
-    // const boxY = y + textHeight / 2 - boxSizeHeight / 2 - 2;
-    const boxY = y - boxSizeHeight / 2 + 4; // чуть выше центра для лучшего визуала
+    const boxY = y - boxSizeHeight / 2 + 4;
 
     for (let i = 0; i < 10; i++) {
       page.drawRectangle({
@@ -238,7 +273,7 @@ const skillName = course.skills?.[index] ?? '';
         y: boxY,
         width: boxSize,
         height: boxSizeHeight,
-        color: i < score ? green : gray,
+        color: i < (score ?? 0) ? green : gray, // если score undefined, ставим 0
       });
     }
   });
