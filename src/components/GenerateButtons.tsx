@@ -1,6 +1,9 @@
-import { Download, FileArchive } from 'lucide-react';
+import { Download, File, FileArchive } from 'lucide-react';
 import { Student, Course } from '../types';
-import { generateCertificatePDF } from '../utils/pdfGenerator';
+import {
+  generateCertificatePDF,
+  generateGroupPDF,
+} from '../utils/pdfGenerator';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { useState } from 'react';
@@ -95,6 +98,29 @@ export default function GenerateButtons({
     }
   };
 
+  const generateAllCertificatesPDF = async () => {
+    if (isDisabled || !course.templatePdf) {
+      alert('Пожалуйста, заполните данные всех студентов и дату сертификата');
+      return;
+    }
+
+    try {
+      const formattedDate = new Date(certificateDate).toLocaleDateString(
+        'ru-RU',
+      );
+
+      // генерируем один PDF для всех студентов
+      const pdfBytes = await generateGroupPDF(students, course, formattedDate);
+
+      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+      const fileName = `Сертификаты_группы_${course.name.replace(/\s+/g, '_')}.pdf`;
+      saveAs(blob, fileName);
+    } catch (error) {
+      console.error(error);
+      alert('Ошибка при генерации PDF');
+    }
+  };
+
   return (
     <div className="bg-gray-800 rounded-lg p-6 shadow-xl">
       <h2 className="text-2xl font-bold text-white mb-4">
@@ -133,6 +159,20 @@ export default function GenerateButtons({
             <FileArchive size={24} />
             Скачать все сертификаты (ZIP)
           </button>
+          <div>
+            <button
+              onClick={generateAllCertificatesPDF}
+              disabled={isDisabled}
+              className={`w-full flex mt-5 items-center justify-center gap-3 px-6 py-4 rounded-lg font-semibold text-lg transition-all ${
+                isDisabled
+                  ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl'
+              }`}
+            >
+              <File size={24} />
+              Скачать все одним PDF
+            </button>
+          </div>
         </div>
 
         <div className="border-t border-gray-700 pt-4">

@@ -205,7 +205,7 @@ export async function generateCertificatePDF(
   const rowGap = 36; // расстояние между строками
   const textSize = 15;
 
-  const boxSize = 20;
+  const boxSize = 22;
   const boxSizeHeight = 10;
   const boxGap = 4;
   const textToBoxesGap = 12; // отступ между текстом и квадратиками
@@ -252,7 +252,7 @@ export async function generateCertificatePDF(
     const y = startY - index * rowGap;
     const skillName = skills[index];
 
-    if (!skillName) return; 
+    if (!skillName) return;
     // Текст навыка
     page.drawText(skillName, {
       x: startX,
@@ -268,12 +268,106 @@ export async function generateCertificatePDF(
     const boxY = y - boxSizeHeight / 2 + 4;
 
     for (let i = 0; i < 10; i++) {
+      const isFilled = i < (score ?? 0);
+
+      if (isFilled) {
+        // Заполненный квадратик
+        page.drawRectangle({
+          x: boxesStartX + i * (boxSize + boxGap),
+          y: boxY,
+          width: boxSize,
+          height: boxSizeHeight,
+          color: green,
+        });
+      } else {
+        // Пустой квадратик: заливка белая, граница светло-серая
+        page.drawRectangle({
+          x: boxesStartX + i * (boxSize + boxGap),
+          y: boxY,
+          width: boxSize,
+          height: boxSizeHeight,
+          color: rgb(1, 1, 1), // белый фон
+          borderColor: green, // рамка
+          borderWidth: 1, // ширина рамки
+        });
+      }
+    }
+  });
+
+  page.drawText(date, {
+    x: 705,
+    y: height - 50,
+    size: 11,
+    font,
+    color: textBlue,
+  });
+
+  return await pdfDoc.save();
+}
+
+async function addStudentPage(
+  pdfDoc: PDFDocument,
+  templatePage: any,
+  font: any,
+  student: Student,
+  course: Course,
+  date: string,
+) {
+  const page = pdfDoc.addPage(templatePage); // копируем шаблон
+  const { height } = page.getSize();
+  const textBlue = rgb(0x31 / 255, 0x52 / 255, 0x9a / 255);
+
+  // ФИО студента
+  page.drawText(student.fullName ?? '', {
+    x: 320,
+    y: height - 265,
+    size: 27,
+    font,
+    color: textBlue,
+  });
+
+  // Навыки
+  const green = rgb(0x89 / 255, 0xc7 / 255, 0x23 / 255);
+  const gray = rgb(0.85, 0.85, 0.85);
+  const skills = course.skills ?? [];
+  const skillScores = [student.skill1, student.skill2, student.skill3].slice(
+    0,
+    skills.length,
+  );
+
+  const startX = 310;
+  const startY = height - 370;
+  const rowGap = 36;
+  const boxSize = 20;
+  const boxSizeHeight = 10;
+  const boxGap = 4;
+  const textToBoxesGap = 12;
+  const skillFontSize = 18;
+
+  skillScores.forEach((score, index) => {
+    const y = startY - index * rowGap;
+    const skillName = skills[index];
+    if (!skillName) return;
+
+    page.drawText(skillName, {
+      x: startX,
+      y,
+      size: skillFontSize,
+      font,
+      color: textBlue,
+    });
+
+    const textWidth = font.widthOfTextAtSize(skillName, skillFontSize);
+    const boxesStartX = startX + textWidth + textToBoxesGap + 10;
+    const boxY = y - boxSizeHeight / 2 + 4;
+
+    for (let i = 0; i < 10; i++) {
       page.drawRectangle({
         x: boxesStartX + i * (boxSize + boxGap),
         y: boxY,
         width: boxSize,
         height: boxSizeHeight,
-        color: i < (score ?? 0) ? green : gray, // если score undefined, ставим 0
+        color: i < (score ?? 0) ? green : gray,
       });
     }
   });
@@ -285,6 +379,28 @@ export async function generateCertificatePDF(
     font,
     color: textBlue,
   });
+}
+
+export async function generateGroupPDF(
+  students: Student[],
+  course: Course,
+  date: string,
+): Promise<Uint8Array> {
+  const pdfDoc = await PDFDocument.create();
+  pdfDoc.registerFontkit(fontkit);
+
+  // Шаблон и шрифт
+  const templateDoc = await PDFDocument.load(course.templatePdf!);
+  const fontBytes = await fetch('/fonts/DelaGothicOne-Regular.ttf').then((r) =>
+    r.arrayBuffer(),
+  );
+  const font = await pdfDoc.embedFont(fontBytes);
+
+  for (const student of students) {
+    // Копируем страницу шаблона для каждого студента
+    const [templatePageCopy] = await pdfDoc.copyPages(templateDoc, [0]);
+    await addStudentPage(pdfDoc, templatePageCopy, font, student, course, date);
+  }
 
   return await pdfDoc.save();
 }
