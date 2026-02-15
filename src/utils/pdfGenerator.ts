@@ -361,15 +361,33 @@ async function addStudentPage(
     const boxesStartX = startX + textWidth + textToBoxesGap + 10;
     const boxY = y - boxSizeHeight / 2 + 4;
 
-    for (let i = 0; i < 10; i++) {
-      page.drawRectangle({
-        x: boxesStartX + i * (boxSize + boxGap),
-        y: boxY,
-        width: boxSize,
-        height: boxSizeHeight,
-        color: i < (score ?? 0) ? green : gray,
-      });
+
+        for (let i = 0; i < 10; i++) {
+      const isFilled = i < (score ?? 0);
+
+      if (isFilled) {
+        // Заполненный квадратик
+        page.drawRectangle({
+          x: boxesStartX + i * (boxSize + boxGap),
+          y: boxY,
+          width: boxSize,
+          height: boxSizeHeight,
+          color: green,
+        });
+      } else {
+        // Пустой квадратик: заливка белая, граница светло-серая
+        page.drawRectangle({
+          x: boxesStartX + i * (boxSize + boxGap),
+          y: boxY,
+          width: boxSize,
+          height: boxSizeHeight,
+          color: rgb(1, 1, 1), // белый фон
+          borderColor: green, // рамка
+          borderWidth: 1, // ширина рамки
+        });
+      }
     }
+
   });
 
   page.drawText(date, {
