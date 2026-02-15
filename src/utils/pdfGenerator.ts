@@ -210,7 +210,7 @@ export async function generateCertificatePDF(
   skillScores.forEach((score, index) => {
     const y = startY - index * rowGap;
 
-    const skillName = course.skills[index];
+const skillName = course.skills?.[index] ?? '';
 
     // Текст навыка
     page.drawText(skillName, {
